@@ -1,0 +1,7 @@
+#!/bin/bash
+
+set -e
+
+docker build -f scripts/Dockerfile -t atomy/discord-bot_manager:latest .
+
+docker tag atomy/discord-bot_manager:latest %ECR_PREFIX%.dkr.ecr.eu-central-1.amazonaws.com/atomy/discord-bot_manager:latest

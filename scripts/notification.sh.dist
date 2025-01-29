@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+set -e
+
+DISCORD_WEBHOOK_URL=%DISCORD_WEBHOOK_URL%
+APP_NAME=<app-name>
+CHANGES=`cat changes`
+CURRENT_VERSION=<current-version>
+NEW_VERSION=<new-version>
+
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d "{\"username\": \"Jenkins-Release\", \"content\": \"[`hostname`] Released **<app-name>** -- **<current-version>** -> **<new-version>**\n${CHANGES}\"}" \
+  ${DISCORD_WEBHOOK_URL}

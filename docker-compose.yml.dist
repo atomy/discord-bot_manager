@@ -1,0 +1,14 @@
+services:
+  discord-bot-manager:
+    image: %ECR_PREFIX%.dkr.ecr.eu-central-1.amazonaws.com/atomy/discord-bot_manager:latest
+    ports:
+      - "%LISTEN_API_PORT%:%LISTEN_API_PORT%"
+    environment:
+      - DB_HOST=%DB_HOST%
+      - DB_NAME=%DB_NAME%
+      - DB_USER=%DB_USER%
+      - DB_PASSWORD=%DB_PASSWORD%
+      - BOT_MANAGER_DISCORD_TOKEN=%BOT_MANAGER_DISCORD_TOKEN%
+      - LISTEN_API_KEY=%LISTEN_API_KEY%
+      - LISTEN_API_PORT=%LISTEN_API_PORT%
+      - DISCORD_BOT_CHANNEL_ID=%DISCORD_BOT_CHANNEL_ID%

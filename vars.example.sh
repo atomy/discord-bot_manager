@@ -1,0 +1,16 @@
+#!/bin/sh
+
+export APP_NAME=
+export ECR_PREFIX=
+export BOT_MANAGER_DISCORD_TOKEN=
+export DISCORD_WEBHOOK_URL=
+export SSH_DEPLOY_HOST=
+export DEPLOY_FULLPATH=
+export DEPLOY_HOST=
+export DB_HOST=
+export DB_NAME=
+export DB_USER=
+export DB_PASSWORD=
+export LISTEN_API_KEY=
+export LISTEN_API_PORT=
+export DISCORD_BOT_CHANNEL_ID=
