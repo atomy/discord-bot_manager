@@ -12,3 +12,4 @@ services:
       - LISTEN_API_KEY=%LISTEN_API_KEY%
       - LISTEN_API_PORT=%LISTEN_API_PORT%
       - DISCORD_BOT_CHANNEL_ID=%DISCORD_BOT_CHANNEL_ID%
+    restart: unless-stopped

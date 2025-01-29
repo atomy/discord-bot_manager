@@ -94,10 +94,10 @@ function updateBotManagerPresence() {
 botManager.once('ready', async () => {
     console.log(`Bot Manager logged in as ${botManager.user.tag}`);
     // Load enabled bots from database on startup
-    const [rows] = await db.query('SELECT name, discord_token FROM bots WHERE enabled = 1');
+    const [rows] = await db.query('SELECT name, discordToken FROM bots WHERE enabled = 1');
 
-    for (const { name, discord_token } of rows) {
-        addBot(name, discord_token, true);
+    for (const { name, discordToken } of rows) {
+        addBot(name, discordToken, true);
     }
 
     // ✅ Ensure the presence is updated even if no bots are loaded
@@ -109,7 +109,6 @@ botManager.on('messageCreate', async (message) => {
     if (!message.content.startsWith('!')) return;
 
     const [command, ...args] = message.content.slice(1).split(' ');
-
 
     if (command === 'clear') {
         // Check if the command was issued in the specified channel
@@ -150,7 +149,7 @@ botManager.on('messageCreate', async (message) => {
             const redactedMessage = `!addbot ${name} xxx`;
             const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
-            await db.query('INSERT INTO bots (name, discord_token, enabled, createdOn) VALUES (?, ?, 1, ?)', [name, token, now]);
+            await db.query('INSERT INTO bots (name, discordToken, enabled, createdOn) VALUES (?, ?, 1, ?)', [name, token, now]);
             addBot(name, token);
 
             await message.channel.send(
@@ -177,6 +176,29 @@ botManager.on('messageCreate', async (message) => {
             console.error(error);
             message.reply('Failed to unregister the bot: ' + error);
         }
+    } else if (command === 'init-url') {
+        const name = args[0];
+        const initUrl = args[1];
+
+        if (!name || !initUrl) {
+            return message.reply('Please provide a bot name and a URL. Usage: !init-url <botname> <url>');
+        }
+
+        try {
+            // Update the initUrl for the given bot in the database
+            const [result] = await db.query('UPDATE bots SET initPresenceUrl = ? WHERE name = ?', [initUrl, name]);
+
+            if (result.affectedRows === 0) {
+                return message.reply(`No bot with the name **${name}** found.`);
+            }
+
+            message.reply(`✅ The init URL for bot **${name}** has been updated to: ${initUrl}`);
+        } catch (error) {
+            console.error(`Failed to update init URL for bot ${name}: ${error.message}`);
+            message.reply(`❌ Failed to update the init URL for bot **${name}**.`);
+        }
+    } else if (command === 'help') {
+        return message.reply('Available commands: !addbot, !init-url, !delbot, !clear');
     }
 });
 
@@ -202,6 +224,34 @@ async function addBot(name, token) {
             }
         } catch (error) {
             console.error(`Failed to send log message to channel: ${error.message}`);
+        }
+
+        // Fetch initPresenceUrl from the database
+        const [rows] = await db.query('SELECT initPresenceUrl FROM bots WHERE name = ?', [name]);
+
+        if (rows.length > 0 && rows[0].initPresenceUrl) {
+            const initPresenceUrl = rows[0].initPresenceUrl;
+            console.log(`Sending initial presence request to ${initPresenceUrl} for bot ${name}...`);
+
+            try {
+                const response = await fetch(initPresenceUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({}) // Empty body
+                });
+
+                console.log(`Received response with status: ${response.status}`);
+
+                if (response.status === 201) {
+                    console.log(`Initial presence request successful for bot ${name}.`);
+                } else {
+                    console.warn(`Unexpected status code (${response.status}) returned from ${initPresenceUrl}`);
+                }
+            } catch (error) {
+                console.error(`Failed to send initial presence request for bot ${name}: ${error.message}`);
+            }
         }
 
         // Update bot manager's presence
