@@ -215,7 +215,7 @@ async function addBot(name, token) {
         console.log(`Bot logged in as ${bot.user.tag} with name ${name}`);
 
         const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
-        await db.query('UPDATE bots SET lastConnectedOn = ?, logonError = NULL, enabled = 1 WHERE name = ?', [now, name]);
+        await db.query('UPDATE bots SET lastConnectedOn = ?, logonError = NULL, enabled = 1, disabledOn = NULL WHERE name = ?', [now, name]);
 
         try {
             const channel = await botManager.channels.fetch(DISCORD_BOT_CHANNEL_ID);
