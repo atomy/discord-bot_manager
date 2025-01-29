@@ -2,4 +2,4 @@
 
 set -e
 
-docker push %ECR_PREFIX%.dkr.ecr.eu-central-1.amazonaws.com/atomy/discord-bot_manager:latest
+docker push %ECR_REPO%/atomy/discord-bot_manager:latest

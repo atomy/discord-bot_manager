@@ -4,4 +4,4 @@ set -e
 
 scp ~/.docker/config.json %SSH_DEPLOY_HOST%:~/.docker/config.json
 scp docker-compose.yml %SSH_DEPLOY_HOST%:%DEPLOY_FULLPATH%
-ssh a%SSH_DEPLOY_HOST% "cd %DEPLOY_FULLPATH% && docker-compose -f docker-compose.yml pull && docker-compose -f docker-compose.yml up -d --remove-orphans"
+ssh %SSH_DEPLOY_HOST% "cd %DEPLOY_FULLPATH% && docker-compose -f docker-compose.yml pull && docker-compose -f docker-compose.yml up -d --remove-orphans"

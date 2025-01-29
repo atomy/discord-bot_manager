@@ -90,6 +90,7 @@ function updateBotManagerPresence() {
     }
 }
 
+// onReady, connect all configured bots
 botManager.once('ready', async () => {
     console.log(`Bot Manager logged in as ${botManager.user.tag}`);
     // Load enabled bots from database on startup
@@ -103,6 +104,7 @@ botManager.once('ready', async () => {
     updateBotManagerPresence();
 });
 
+// onMessageCreate, listen to some configured ! commands
 botManager.on('messageCreate', async (message) => {
     if (!message.content.startsWith('!')) return;
 
@@ -178,6 +180,7 @@ botManager.on('messageCreate', async (message) => {
     }
 });
 
+// addBot, connect the discord got and mark it as connected in database
 async function addBot(name, token) {
     if (activeBots.has(name)) {
         console.log(`Bot with name ${name} is already active.`);
@@ -241,6 +244,7 @@ async function addBot(name, token) {
     }
 }
 
+// remove the bot by name and disconnect from discord for it
 function removeBot(name) {
     const botInfo = activeBots.get(name);
 
@@ -288,6 +292,71 @@ app.post('/api/bot/presence', async (req, res) => {
         res.status(500).json({ error: 'Failed to update bot presence.' });
     }
 });
+
+// Edit the channel topic for the given channelId
+function editChannelTopicWith(channelId, topic) {
+    botManager.channels.fetch(channelId)
+        .then((channel) => {
+            if (channel.isTextBased()) {
+                return channel.edit({ topic }) // Update the channel topic
+                    .then(() => {
+                        console.log(`Channel topic updated: ${topic}`);
+                    })
+                    .catch((err) => {
+                        console.error(`Failed to update channel topic: ${err.message}`);
+                    });
+            } else {
+                console.error('The specified channel is not text-based.');
+            }
+        })
+        .catch((err) => {
+            console.error(`Failed to fetch the channel: ${err.message}`);
+        });
+}
+
+// Function to clear the channel topic and shut down gracefully
+async function shutdownGracefully() {
+    console.log('Shutting down gracefully...');
+
+    // Set a timeout to force the process to exit after 10 seconds if shutdown hangs
+    const shutdownTimeout = setTimeout(() => {
+        console.error('Shutdown timed out, forcing exit.');
+        process.exit(1);
+    }, 10000); // 10 seconds
+
+    try {
+        console.log('Clearing channel topic...');
+        editChannelTopicWith(DISCORD_BOT_CHANNEL_ID, "")
+        console.log('Clearing channel topic...DONE');
+
+        // Log out all active bots
+        for (const [name, { client }] of activeBots.entries()) {
+            try {
+                await client.destroy();
+                console.log(`Bot ${name} logged out.`);
+            } catch (err) {
+                console.error(`Failed to log out bot ${name}: ${err.message}`);
+            }
+        }
+
+        // Log out the Bot Manager
+        await botManager.destroy();
+        console.log('Bot Manager logged out.');
+
+        // Clear the timeout once shutdown completes successfully
+        clearTimeout(shutdownTimeout);
+        process.exit(0);
+    } catch (err) {
+        console.error(`Error during shutdown: ${err.message}`);
+        clearTimeout(shutdownTimeout);
+        process.exit(1);
+    }
+}
+
+// Set up signal handlers
+process.on('SIGTERM', shutdownGracefully); // For termination signals (e.g., Docker stop)
+process.on('SIGQUIT', shutdownGracefully); // For quit signals
+process.on('SIGINT', shutdownGracefully);  // For Ctrl+C (manual interruption)
 
 // Start the Bot Manager and API server
 botManager.login(BOT_MANAGER_DISCORD_TOKEN).then(() => {

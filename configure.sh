@@ -2,8 +2,8 @@
 
 set -e
 
-if [ -z "${ECR_PREFIX}" ] ; then
-  echo "ENV: ECR_PREFIX is missing!"
+if [ -z "${ECR_REPO}" ] ; then
+  echo "ENV: ECR_REPO is missing!"
   exit 1
 fi
 
@@ -55,7 +55,7 @@ rm -f docker-compose.yml
 replace_placeholders() {
   local file=$1
 
-  sed -i "s|%ECR_PREFIX%|${ECR_PREFIX}|g" "$file"
+  sed -i "s|%ECR_REPO%|${ECR_REPO}|g" "$file"
   sed -i "s|%DEPLOY_FULLPATH%|${DEPLOY_FULLPATH}|g" "$file"
   sed -i "s|%SSH_DEPLOY_HOST%|${SSH_DEPLOY_HOST}|g" "$file"
   sed -i "s|%BOT_MANAGER_DISCORD_TOKEN%|${BOT_MANAGER_DISCORD_TOKEN}|g" "$file"
