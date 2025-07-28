@@ -135,6 +135,12 @@ botManager.once("ready", async () => {
 
   // ✅ Ensure the presence is updated even if no bots are loaded
   updateBotManagerPresence();
+
+  // Set up periodic presence refresh for Bot Manager (every 30 minutes)
+  setInterval(() => {
+    console.log("Refreshing Bot Manager presence...");
+    updateBotManagerPresence();
+  }, 30 * 60 * 1000); // 30 minutes in milliseconds
 });
 
 // onMessageCreate, listen to some configured ! commands
